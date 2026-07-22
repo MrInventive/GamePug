@@ -55,15 +55,25 @@
   #status{ font-size:12px; color:var(--dim); min-height:16px; }
 
   #gameWrap{ display:none; flex-direction:column; align-items:center; gap:10px; }
+  #gameWrap:fullscreen{
+    background:var(--bg); justify-content:center; width:100vw; height:100vh; gap:16px;
+  }
+  #gameWrap:fullscreen canvas{ max-width:92vw; max-height:78vh; width:auto; }
   #hud{
     display:flex; justify-content:space-between; width:100%; font-size:13px;
     letter-spacing:0.15em; text-transform:uppercase;
   }
   #scoreYou{ color:var(--p1); }
   #scoreThem{ color:var(--p2); }
-  canvas{ background:#0e120e; border:1px solid var(--line); touch-action:none; }
-  #footer{ font-size:11px; color:var(--dim); letter-spacing:0.08em; }
+  canvas{ background:#0e120e; border:1px solid var(--line); touch-action:none; max-width:94vw; height:auto; }
+  #footer{ font-size:11px; color:var(--dim); letter-spacing:0.08em; text-align:center; }
   #leaveBtn{ font-size:11px; padding:6px 10px; }
+
+  @media (max-width: 480px){
+    .title{ font-size:10px; letter-spacing:0.25em; }
+    #lobby{ padding:20px 18px; }
+    #hud{ font-size:11px; }
+  }
 </style>
 </head>
 <body>
@@ -102,7 +112,7 @@
       <span id="scoreThem">THEM: 0</span>
     </div>
     <canvas id="canvas" width="700" height="440"></canvas>
-    <div id="footer">↑ / ↓ or mouse to move · <button id="leaveBtn">Leave Game</button></div>
+    <div id="footer">↑ / ↓, mouse, or touch-drag to move · <button id="fullscreenBtn">Fullscreen</button> · <button id="leaveBtn">Leave Game</button></div>
   </div>
 
 <script>
@@ -132,6 +142,17 @@
   const scoreThemEl = document.getElementById('scoreThem');
   const roleLabelEl = document.getElementById('roleLabel');
   const leaveBtn = document.getElementById('leaveBtn');
+  const fullscreenBtn = document.getElementById('fullscreenBtn');
+
+  fullscreenBtn.addEventListener('click', ()=>{
+    if(!document.fullscreenElement){
+      gameWrap.requestFullscreen().catch(()=>{
+        setStatus('Fullscreen not supported on this device.');
+      });
+    } else {
+      document.exitFullscreen();
+    }
+  });
 
   function setStatus(msg){ statusEl.textContent = msg; }
 
@@ -286,6 +307,8 @@
     window.addEventListener('keydown', onKeyDown);
     window.addEventListener('keyup', onKeyUp);
     canvas.addEventListener('mousemove', onMouseMove);
+    canvas.addEventListener('touchmove', onTouchMove, { passive:false });
+    canvas.addEventListener('touchstart', onTouchMove, { passive:false });
     lastTime = performance.now();
     rafId = requestAnimationFrame(loop);
   }
@@ -310,6 +333,16 @@
     const rect = canvas.getBoundingClientRect();
     const scaleY = H / rect.height;
     const y = (e.clientY - rect.top) * scaleY;
+    myPaddleY = Math.max(0, Math.min(H - PADDLE_H, y - PADDLE_H/2));
+  }
+
+  function onTouchMove(e){
+    e.preventDefault();
+    const touch = e.touches[0];
+    if(!touch) return;
+    const rect = canvas.getBoundingClientRect();
+    const scaleY = H / rect.height;
+    const y = (touch.clientY - rect.top) * scaleY;
     myPaddleY = Math.max(0, Math.min(H - PADDLE_H, y - PADDLE_H/2));
   }
 
