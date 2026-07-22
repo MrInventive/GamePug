@@ -168,9 +168,31 @@
     return s;
   }
 
+  const ICE_CONFIG = {
+    iceServers: [
+      { urls: 'stun:stun.l.google.com:19302' },
+      { urls: 'stun:stun1.l.google.com:19302' },
+      {
+        urls: 'turn:openrelay.metered.ca:80',
+        username: 'openrelayproject',
+        credential: 'openrelayproject'
+      },
+      {
+        urls: 'turn:openrelay.metered.ca:443',
+        username: 'openrelayproject',
+        credential: 'openrelayproject'
+      },
+      {
+        urls: 'turn:openrelay.metered.ca:443?transport=tcp',
+        username: 'openrelayproject',
+        credential: 'openrelayproject'
+      }
+    ]
+  };
+
   function initPeerAsHost(){
     const code = randomCode();
-    peer = new Peer('volley-' + code, { debug: 0 });
+    peer = new Peer('volley-' + code, { debug: 0, config: ICE_CONFIG });
     peer.on('open', ()=>{
       codeDisplay.value = code;
       createdBox.style.display = 'flex';
@@ -190,7 +212,7 @@
   }
 
   function joinGame(code){
-    peer = new Peer(null, { debug: 0 });
+    peer = new Peer(null, { debug: 0, config: ICE_CONFIG });
     peer.on('open', ()=>{
       setStatus('Connecting…');
       const c = peer.connect('volley-' + code.trim().toUpperCase(), { reliable:true });
